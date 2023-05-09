@@ -135,9 +135,12 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
             case 'qemu':
                 validationResponse = this.verifyQEMUConfiguration(folder, config);
                 break;
+            case 'ublast':
+                validationResponse = this.verifyUBlastConfiguration(folder, config);
+                break;
             default:
                 // tslint:disable-next-line:max-line-length
-                validationResponse = 'Invalid servertype parameters. The following values are supported: "jlink", "openocd", "stlink", "stutil", "pyocd", "bmp", "pe", "qemu", "external"';
+                validationResponse = 'Invalid servertype parameters. The following values are supported: "jlink", "openocd", "stlink", "stutil", "pyocd", "bmp", "pe", "qemu", "ublast", "external"';
                 break;
         }
 
@@ -619,6 +622,26 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
             return 'The PE GDB Server Only supports socket type SWO';
         }
 
+        return null;
+    }
+
+    private verifyUBlastConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): string {
+        if(!config.device)
+        {
+            vscode.window.showWarningMessage('FPGA Device Not defined.');
+        }
+
+
+        if (config.swoConfig.enabled) {
+            vscode.window.showWarningMessage('SWO support is not available when using ublast.');
+            config.swoConfig = { enabled: false, ports: [], cpuFrequency: 0, swoFrequency: 0 };
+            config.graphConfig = [];
+        }
+
+        if (config.rtos) {
+            return 'RTOS support is not available when using ublast';
+        }
+        
         return null;
     }
 

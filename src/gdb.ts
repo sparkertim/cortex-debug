@@ -43,6 +43,7 @@ import { SymbolTable } from './backend/symbols';
 import { SymbolInformation, SymbolScope } from './symbols';
 import { TcpPortScanner } from './tcpportscanner';
 import { LiveWatchMonitor } from './live-watch-monitor';
+import { UBLastServerController } from './ublast';
 
 // returns [threadId, frameId]
 // We use 3 nibbles for frameId (max of 4K) and 2 nibbles for ThreadId (max of 256).
@@ -87,6 +88,7 @@ const SERVER_TYPE_MAP = {
     pe: PEServerController,
     bmp: BMPServerController,
     qemu: QEMUServerController,
+    ublast: UBLastServerController,
     external: ExternalServerController
 };
 

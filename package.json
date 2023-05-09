@@ -530,6 +530,7 @@
                                     "bmp",
                                     "pe",
                                     "qemu",
+                                    "ublast",
                                     "external"
                                 ]
                             },
@@ -1630,6 +1631,7 @@
                                     "bmp",
                                     "pe",
                                     "qemu",
+                                    "ublast",
                                     "external"
                                 ]
                             },

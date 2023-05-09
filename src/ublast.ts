@@ -157,7 +157,7 @@ export class UBLastServerController extends EventEmitter implements GDBServerCon
             /*
             * nios2-gdb-server reset and halt nios2 when load.
             */
-            // 'interpreter-exec console "load"',
+            'interpreter-exec console "load"',
         ];
         return commands;
     }

@@ -11,10 +11,10 @@ jobs:
     name: Setup
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Cache NPM Install
       id: cache-npm
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ./node_modules
         key: npm-${{ hashFiles('./package-lock.json') }}
@@ -28,10 +28,10 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Load NPM install
       id: cache-npm
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ./node_modules
         key: npm-${{ hashFiles('./package-lock.json') }}
@@ -40,7 +40,7 @@ jobs:
     - name: Package Binary
       run: ./node_modules/vsce/vsce package -o cortex-debug.vsix
     - name: Upload Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: cortex-debug.vsix
         path: ./cortex-debug.vsix
@@ -50,10 +50,10 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Load NPM install
       id: cache-npm
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ./node_modules
         key: npm-${{ hashFiles('./package-lock.json') }}

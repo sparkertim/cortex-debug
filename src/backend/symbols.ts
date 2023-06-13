@@ -293,26 +293,19 @@ export class SymbolTable {
      */
     public loadSymbols(): Promise<void> {
         return new Promise(async (resolve) => {
-            const total = 'Total running objdump & nm';
-            console.time(total);
+            const reportTimes = false;
             try {
                 await this.loadFromObjdumpAndNm();
 
-                const nxtLabel = 'Postprocessing symbols';
-                console.time(nxtLabel);
                 this.categorizeSymbols();
                 this.sortGlobalVars();
                 resolve();
-                console.timeEnd(nxtLabel);
             }
             catch (e) {
                 // We treat this is non-fatal, but why did it fail?
                 this.gdbSession.handleMsg('log', `Error: objdump failed! statics/globals/functions may not be properly classified: ${e.toString()}`);
                 this.gdbSession.handleMsg('log', '    ENOENT means program not found. If that is not the issue, please report this problem.');
                 resolve();
-            }
-            finally {
-                console.timeEnd(total);
             }
         });
     }

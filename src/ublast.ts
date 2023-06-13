@@ -59,7 +59,7 @@ export class JtagChainInfo {
             this.index = Number(tmp[1]);
             this.cableName = String(tmp[2].trim());
         }
-
+        
         for(let i = 1; i< lines.length; i++)
         {
             tmp = lines[i].match(regex_node);
@@ -91,7 +91,7 @@ export class UBLastServerController extends EventEmitter implements GDBServerCon
         var regex = /(\d+)\)\s+(.*)\n\n/g;
         var i: number = 0;
         var tmp = str.split("\n\n");
-        let infos = [];
+        let infos:JtagChainInfo[] = [];
         let matched_cable: string[] = [];
         for(let i = 0; i< tmp.length; i++)
         {
@@ -101,16 +101,18 @@ export class UBLastServerController extends EventEmitter implements GDBServerCon
             }
         }
 
-        for(let i=0; i< infos.length; i++)
-        {
-            for(let j = 0; j< infos[i].node.length; j++)
-            {
-                if(infos[i].valid && infos[i].node[j][1].match(this.args.device) != null)
-                {
-                    matched_cable.push(infos[i].cableName);
-                }
+        infos?.forEach(
+            (info, index, array) => {
+                info.node.forEach(
+                    (node, ind2, node_array) => {
+                        if(info.valid && node[1].match(this.args.device) != null)
+                        {
+                            matched_cable.push(info.cableName);
+                        }
+                    }
+                )
             }
-        }
+        )
         this.cable = this.args.targetId == null? matched_cable[0] : Number(this.args.targetId) <= matched_cable.length? matched_cable[Number(this.args.targetId)]: matched_cable[0];
     }
 

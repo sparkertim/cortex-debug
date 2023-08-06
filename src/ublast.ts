@@ -3,9 +3,10 @@ import { GDBServerController, ConfigurationArguments, calculatePortMask, createP
 import * as os from 'os';
 import { EventEmitter } from 'events';
 import internal = require('stream');
+import { GDBDebugSession } from './gdb';
 
 const commandExistsSync = require('command-exists').sync;
-const EXECUTABLE_NAMES = ['nios2-gdb-server'];
+const EXECUTABLE_NAME = 'nios2-gdb-server';
 
 /// jtag enum
 /*
@@ -83,11 +84,12 @@ export class UBLastServerController extends EventEmitter implements GDBServerCon
     private args: ConfigurationArguments;
     private ports: { [name: string]: number };
     private cable: string;
+    private gdbSession: GDBDebugSession | undefined
     constructor() {
         super();
     }
 
-    private cableMactch(str:string): void{
+    private cableMactch(str: string): string | undefined{
         var regex = /(\d+)\)\s+(.*)\n\n/g;
         var i: number = 0;
         var tmp = str.split("\n\n");
@@ -113,21 +115,28 @@ export class UBLastServerController extends EventEmitter implements GDBServerCon
                 )
             }
         )
-        this.cable = this.args.targetId == null? matched_cable[0] : Number(this.args.targetId) <= matched_cable.length? matched_cable[Number(this.args.targetId)]: matched_cable[0];
+        return matched_cable.length > 0 ? this.args.targetId == null? matched_cable[0] : Number(this.args.targetId) <= matched_cable.length? matched_cable[Number(this.args.targetId)]: matched_cable[0] : undefined;
     }
 
-    private getCable(){
-        var exec = require('child_process').execSync;
-        let tmp: String;
-        let cable: string;
+    private getCable(): boolean {
+        var exec = require('child_process').execSync
+        let tmp: String
         if (os.platform() === 'win32') {
-            tmp = "jtagconfig.exe";
+            tmp = "jtagconfig.exe"
         }
         else {
-            tmp = "jtagconfig";
+            tmp = "jtagconfig"
         }
-       var rec = exec(tmp, {});
-       this.cableMactch(String(rec));
+        let rec: Uint8Array
+        try{
+            rec = exec(tmp, {})
+            this.cable = this.cableMactch(rec.toString())
+        }
+        catch(error)
+        {
+            return false;
+        }
+        return  this.cable ? true : false
     }
 
     public setPorts(ports: { [name: string]: number }): void {
@@ -189,23 +198,22 @@ export class UBLastServerController extends EventEmitter implements GDBServerCon
     }
 
     public serverExecutable() {
+        let exec;
         if (this.args.serverpath) { return this.args.serverpath; }
         else {
             if (os.platform() === 'win32') {
-                return 'nios2-gdb-server.exe';
+                exec = EXECUTABLE_NAME + '.exe'
             }
             else {
-                for (let name in EXECUTABLE_NAMES) {
-                    if (commandExistsSync(EXECUTABLE_NAMES[name])) { return EXECUTABLE_NAMES[name]; }
-                }
-                return 'nios2-gdb-server';
+                
+                exec = EXECUTABLE_NAME;
             }
         }
+        return commandExistsSync(exec) ? exec : null;
     }
     
     public serverArguments(): string[] {
         const gdbport = this.ports['gdbPort'];
-
         let cmdargs = [
             //'-q',
             '--tcpport', gdbport.toString(),
@@ -213,11 +221,10 @@ export class UBLastServerController extends EventEmitter implements GDBServerCon
             //'--tcpdebug',
             '--tcppersist'
         ];
-        this.getCable();
-        if(this.cable){
+        if(this.getCable()){
             cmdargs.push('-c', this.cable);
         }
-        if (this.args.serverArgs) {
+        if (this.args.serverArgs && this.args.serverArgs.length > 0) {
             cmdargs = cmdargs.concat(this.args.serverArgs);
         }
 
@@ -231,7 +238,9 @@ export class UBLastServerController extends EventEmitter implements GDBServerCon
     public swoAndRTTCommands(): string[] {return []}
     public serverLaunchStarted(): void {}
     public serverLaunchCompleted(): void {}
-    public debuggerLaunchStarted(): void {}
+    public debuggerLaunchStarted(obj?: GDBDebugSession): void {
+        this.gdbSession = obj
+    }
     public debuggerLaunchCompleted(): void {}
     public allocateRTTPorts(): Promise<void> {
         return Promise.resolve();
